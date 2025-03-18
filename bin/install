@@ -8,4 +8,24 @@ plugin_dir=$(dirname "$(dirname "$current_script_path")")
 # shellcheck source=../lib/utils.bash
 source "${plugin_dir}/lib/utils.bash"
 
-install_version "$ASDF_INSTALL_TYPE" "$ASDF_INSTALL_VERSION" "$ASDF_INSTALL_PATH"
+if [ "$ASDF_INSTALL_TYPE" != "version" ]; then
+    fail "asdf-jdtls supports release installs only"
+fi
+
+echo "Installing JDTLS release $ASDF_INSTALL_VERSION..."
+
+mkdir -p "$ASDF_INSTALL_PATH"
+
+archive="${ASDF_DOWNLOAD_PATH}/jdtls-${ASDF_INSTALL_VERSION}.tar.gz"
+tar -xzf "$archive" -C "$ASDF_INSTALL_PATH" || fail "Could not extract $archive"
+
+# Make the jdtls wrapper script executable
+mkdir -p "${ASDF_INSTALL_PATH}/bin"
+wrapper_path="${plugin_dir}/bin/jdtls"
+cp "$wrapper_path" "${ASDF_INSTALL_PATH}/bin/jdtls"
+chmod +x "${ASDF_INSTALL_PATH}/bin/jdtls"
+
+# Clean up download directory
+rm -rf "$ASDF_DOWNLOAD_PATH"
+
+echo "JDTLS $ASDF_INSTALL_VERSION installation complete!"

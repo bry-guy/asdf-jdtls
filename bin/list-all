@@ -8,4 +8,7 @@ plugin_dir=$(dirname "$(dirname "$current_script_path")")
 # shellcheck source=../lib/utils.bash
 source "${plugin_dir}/lib/utils.bash"
 
-list_all_versions | sort_versions | xargs echo
+JDTLS_RELEASES_URL="https://download.eclipse.org/jdtls/milestones/?d"
+PATTERN="'/jdtls/milestones/\([0-9][^']*\)'"
+
+web_list_versions_from_html $JDTLS_RELEASES_URL $PATTERN  | xargs echo

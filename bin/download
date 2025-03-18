@@ -7,7 +7,18 @@ plugin_dir=$(dirname "$(dirname "$current_script_path")")
 
 # shellcheck source=../lib/utils.bash
 source "${plugin_dir}/lib/utils.bash"
-
 mkdir -p "$ASDF_DOWNLOAD_PATH"
 
-download_release "$ASDF_INSTALL_VERSION" "$ASDF_DOWNLOAD_PATH"
+url="https://download.eclipse.org/jdtls/milestones/${ASDF_INSTALL_VERSION}/"
+
+echo "Finding JDTLS release $ASDF_INSTALL_VERSION..."
+
+filename=$(web_find_file "$url" "jdt-language-server-${ASDF_INSTALL_VERSION}-[0-9]*.tar.gz")
+
+if [ -z "$filename" ]; then
+fail "Could not find release for JDTLS version $ASDF_INSTALL_VERSION"
+fi
+
+echo "Found JDTLS release: $filename"
+
+web_download_file "${url}${filename}" "${ASDF_DOWNLOAD_PATH}/jdtls-${ASDF_INSTALL_VERSION}.tar.gz"
