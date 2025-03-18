@@ -11,4 +11,4 @@ source "${plugin_dir}/lib/utils.bash"
 JDTLS_RELEASES_URL="https://download.eclipse.org/jdtls/milestones/?d"
 PATTERN="'/jdtls/milestones/\([0-9][^']*\)'"
 
-web_list_versions_from_html $JDTLS_RELEASES_URL $PATTERN  | xargs echo
+web_list_versions_from_html $JDTLS_RELEASES_URL $PATTERN
