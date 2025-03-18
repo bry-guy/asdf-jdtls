@@ -1,0 +1,1 @@
+- [ ] Automatically detect current Java version and fail if JDTLS > JAVA version
