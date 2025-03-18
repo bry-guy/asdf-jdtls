@@ -38,17 +38,9 @@ github_download_source() {
   local version="$2"
   local output_file="$3"
   
-  # Add 'v' prefix to tag if not present and if it's not already in the tag
-  local tag_prefix
-  if [[ "$version" != v* ]]; then
-    tag_prefix="v$version"
-  else
-    tag_prefix="$version"
-  fi
+  local url="https://github.com/${repo}/archive/refs/tags/${version}.tar.gz"
   
-  local url="https://github.com/${repo}/archive/refs/tags/${tag_prefix}.tar.gz"
-  
-  echo "* Downloading source for ${repo} ${version}..."
+  echo "Downloading source for ${repo} ${version}..."
   curl "${CURL_OPTS[@]}" -o "$output_file" "$url" || fail "Could not download $url"
 }
 
@@ -77,13 +69,14 @@ web_download_file() {
   local url="$1"
   local output_file="$2"
   
-  echo "* Downloading from $url..."
+  echo "Downloading from $url..."
   curl "${CURL_OPTS[@]}" -o "$output_file" "$url" || fail "Could not download $url"
 }
 
 # ---- Build functions ----
 
 maven_build() {
+  local current_path=$(pwd)
   local source_path="$1"
   
   # Change to the source directory
@@ -92,7 +85,7 @@ maven_build() {
   # First try using the Maven wrapper
   if [ -f "./mvnw" ]; then
     chmod +x "./mvnw"
-    echo "* Building with Maven wrapper..."
+    echo "Building with Maven wrapper..."
     ./mvnw clean install -DskipTests || fail "Maven build failed"
   else
     # Fall back to system Maven
@@ -100,27 +93,25 @@ maven_build() {
       fail "Maven is required but not found"
     fi
     
-    echo "* Building with system Maven..."
+    echo "Building with system Maven..."
     mvn clean install -DskipTests || fail "Maven build failed"
   fi
+
+  cd "$current_path"
 }
 
 # ---- Java functions ----
 
 java_ensure() {
-  if [ -n "${JAVA_HOME:-}" ]; then
-    if [ ! -x "$JAVA_HOME/bin/java" ]; then
-      fail "JAVA_HOME is set but $JAVA_HOME/bin/java is not executable"
+    if command -v java >/dev/null; then
+        echo "Found java in path."
+    elif [ -n "${JAVA_HOME:-}" ]; then
+        echo "Looking for java in JAVA_HOME."
+        if [ ! -x "$JAVA_HOME/bin/java" ]; then
+            fail "$JAVA_HOME/bin/java is not executable"
+        fi
+    else
+        fail "java not found in path and $JAVA_HOME is unset."
     fi
-  elif ! command -v java >/dev/null; then
-    fail "Java is required but not found. Set JAVA_HOME or ensure java is in PATH."
-  fi
 }
 
-java_get_exe() {
-  if [ -n "${JAVA_HOME:-}" ]; then
-    echo "$JAVA_HOME/bin/java"
-  else
-    command -v java
-  fi
-}
