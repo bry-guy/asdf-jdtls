@@ -9,16 +9,19 @@ plugin_dir=$(dirname "$(dirname "$current_script_path")")
 source "${plugin_dir}/lib/utils.bash"
 mkdir -p "$ASDF_DOWNLOAD_PATH"
 
-url="https://download.eclipse.org/jdtls/milestones/${ASDF_INSTALL_VERSION}/"
+resolved_version=$(jdtls_resolve_version "$ASDF_INSTALL_VERSION")
+url=$(jdtls_release_dir_url "$resolved_version")
 
-echo "Finding JDTLS release $ASDF_INSTALL_VERSION..."
+echo "Requested JDTLS version: $ASDF_INSTALL_VERSION"
+echo "Resolved JDTLS version: $resolved_version"
 
-filename=$(web_find_file "$url" "jdt-language-server-${ASDF_INSTALL_VERSION}-[0-9]*.tar.gz")
+filename=$(jdtls_find_archive_name "$resolved_version")
 
 if [ -z "$filename" ]; then
-fail "Could not find release for JDTLS version $ASDF_INSTALL_VERSION"
+  fail "Could not find release archive for JDTLS version $resolved_version"
 fi
 
-echo "Found JDTLS release: $filename"
+echo "Found JDTLS release archive: $filename"
+printf '%s\n' "$resolved_version" >"${ASDF_DOWNLOAD_PATH}/resolved-version"
 
-web_download_file "${url}${filename}" "${ASDF_DOWNLOAD_PATH}/jdtls-${ASDF_INSTALL_VERSION}.tar.gz"
+web_download_and_verify_sha256 "${url}${filename}" "${ASDF_DOWNLOAD_PATH}/jdtls-${resolved_version}.tar.gz"

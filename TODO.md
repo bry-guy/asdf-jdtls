@@ -1,1 +1,8 @@
-- [ ] Automatically detect current Java version and fail if JDTLS > JAVA version
+- [x] Support exact JDTLS installs from Eclipse milestone releases
+- [x] Support `latest`, `latest-java17`, `latest-java21`, and `latest-compatible`
+- [x] Detect Java runtime compatibility during install
+- [x] Add checksum verification when upstream `.sha256` files are available
+- [x] Add basic local tests and CI
+- [ ] Expand compatibility mapping if upstream changes Java requirements again
+- [ ] Add end-to-end install smoke tests for asdf and mise in CI
+- [ ] Confirm whether Eclipse exposes a more stable machine-readable release index than HTML scraping

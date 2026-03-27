@@ -1,0 +1,17 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Bash syntax check
+        run: bash -n lib/utils.bash bin/list-all bin/download bin/install test/utils.bash
+
+      - name: Run tests
+        run: bash test/utils.bash

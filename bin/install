@@ -12,11 +12,28 @@ if [ "$ASDF_INSTALL_TYPE" != "version" ]; then
     fail "asdf-jdtls supports release installs only"
 fi
 
-echo "Installing JDTLS release $ASDF_INSTALL_VERSION..."
+resolved_version="$ASDF_INSTALL_VERSION"
+if [ -f "${ASDF_DOWNLOAD_PATH}/resolved-version" ]; then
+    resolved_version=$(cat "${ASDF_DOWNLOAD_PATH}/resolved-version")
+fi
+
+echo "Installing JDTLS release $resolved_version..."
+
+if ! java_check_compatibility "$resolved_version"; then
+    min_java=$(jdtls_min_java_for_version "$resolved_version")
+    detected_java=$(java_detect_major || true)
+
+    if [[ "$ASDF_INSTALL_VERSION" == latest-compatible || "$ASDF_INSTALL_VERSION" == latest-java* ]]; then
+        fail "JDTLS $resolved_version requires Java $min_java+, but detected Java ${detected_java:-unknown}"
+    fi
+
+    echo "Warning: JDTLS $resolved_version requires Java $min_java+, but detected Java ${detected_java:-unknown}."
+    echo "Warning: The install will complete, but running jdtls may fail until you use a newer JDK."
+fi
 
 mkdir -p "$ASDF_INSTALL_PATH"
 
-archive="${ASDF_DOWNLOAD_PATH}/jdtls-${ASDF_INSTALL_VERSION}.tar.gz"
+archive="${ASDF_DOWNLOAD_PATH}/jdtls-${resolved_version}.tar.gz"
 tar -xzf "$archive" -C "$ASDF_INSTALL_PATH" || fail "Could not extract $archive"
 
 # Make the jdtls wrapper script executable
@@ -28,4 +45,4 @@ chmod +x "${ASDF_INSTALL_PATH}/bin/jdtls"
 # Clean up download directory
 rm -rf "$ASDF_DOWNLOAD_PATH"
 
-echo "JDTLS $ASDF_INSTALL_VERSION installation complete!"
+echo "JDTLS $resolved_version installation complete!"

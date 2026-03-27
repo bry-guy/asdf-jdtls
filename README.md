@@ -1,80 +1,117 @@
 # asdf-jdtls
 
-[Eclipse JDTLS](https://github.com/eclipse/eclipse.jdt.ls) plugin for asdf version manager (and mise)
+[Eclipse JDTLS](https://github.com/eclipse-jdtls/eclipse.jdt.ls) plugin for [asdf](https://asdf-vm.com) and [mise](https://mise.jdx.dev).
 
+## Status
 
-# asdf-jdtls
+This plugin installs published JDTLS milestone releases directly from Eclipse downloads and works with both asdf and mise.
 
-[![Build](https://github.com/yourusername/asdf-jdtls/actions/workflows/build.yml/badge.svg)](https://github.com/yourusername/asdf-jdtls/actions/workflows/build.yml)
-
-[Eclipse JDTLS](https://github.com/eclipse/eclipse.jdt.ls) plugin for the [asdf version manager](https://asdf-vm.com) and [mise](https://github.com/jdx/mise).
+It supports:
+- exact JDTLS versions, e.g. `1.40.0`
+- `latest`
+- compatibility aliases:
+  - `latest-java17`
+  - `latest-java21`
+  - `latest-compatible`
 
 ## Install
 
 ### asdf
 
 ```bash
-asdf plugin add jdtls https://github.com/yourusername/asdf-jdtls.git
+asdf plugin add jdtls https://github.com/bry-guy/asdf-jdtls.git
 ```
 
 ### mise
 
 ```bash
-mise plugin install jdtls https://github.com/yourusername/asdf-jdtls.git
-# Or in .mise.toml
-# [plugins.jdtls]
-# plugin_url = "https://github.com/yourusername/asdf-jdtls.git"
+mise plugin install jdtls https://github.com/bry-guy/asdf-jdtls.git
 ```
 
 ## Usage
 
-### asdf
+### Install an exact version
 
 ```bash
-# Install latest version
+asdf install jdtls 1.40.0
+mise install jdtls@1.40.0
+```
+
+### Install the newest published version
+
+```bash
 asdf install jdtls latest
-
-# Set global version
-asdf global jdtls latest
-
-# Run JDTLS
-jdtls
+mise install jdtls@latest
 ```
 
-### mise
+### Install the newest compatible version for a Java runtime
 
 ```bash
-# Install latest version 
-mise install jdtls@latest
+asdf install jdtls latest-java17
+asdf install jdtls latest-java21
+asdf install jdtls latest-compatible
 
-# Set global version
-mise global jdtls@latest
+mise install jdtls@latest-java17
+mise install jdtls@latest-java21
+mise install jdtls@latest-compatible
+```
 
-# Run JDTLS
+### Activate it
+
+```bash
+asdf global jdtls 1.40.0
+mise use -g jdtls@1.40.0
+```
+
+Then run:
+
+```bash
 jdtls
 ```
 
-## Configuration
+## Java compatibility
 
-The JDTLS wrapper supports the following environment variables:
+JDTLS has its own launcher runtime requirements, and they change over time.
 
-- `JDTLS_CONFIG_DIR`: Custom configuration directory
-- `JDTLS_DATA_DIR`: Custom data directory
-- `JDTLS_JAVA_OPTS`: Additional Java options
+This plugin currently uses the following compatibility rules:
 
-## Structure
+- `0.x` releases: Java 11+
+- `1.0.0` through `1.54.x`: Java 17+
+- `1.55.0+`: Java 21+
 
+Notes:
+- `latest` always means the newest published JDTLS release.
+- `latest-compatible` detects the current `java` / `JAVA_HOME` runtime and installs the newest compatible JDTLS version.
+- exact version installs are still allowed even if your current Java is too old; the plugin warns, but the install completes.
+- compatibility aliases fail fast if the detected Java runtime is too old.
+
+## Download verification
+
+When Eclipse publishes a `.sha256` file next to a release archive, the plugin verifies it automatically.
+
+## Development
+
+Run the local tests with:
+
+```bash
+bash test/utils.bash
 ```
+
+## Repository structure
+
+```text
 .
 ├── bin
 │   ├── download
 │   ├── install
-│   ├── list-all
-│   └── jdtls (wrapper script)
-└── lib
+│   ├── jdtls
+│   └── list-all
+├── lib
+│   └── utils.bash
+└── test
     └── utils.bash
 ```
 
 ## License
 
-See [LICENSE](LICENSE) © [Your Name](https://github.com/yourusername/)
+See [LICENSE.md](LICENSE.md).
