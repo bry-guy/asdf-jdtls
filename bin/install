@@ -42,6 +42,11 @@ wrapper_path="${plugin_dir}/bin/jdtls"
 cp "$wrapper_path" "${ASDF_INSTALL_PATH}/bin/jdtls"
 chmod +x "${ASDF_INSTALL_PATH}/bin/jdtls"
 
+# Patch the bundled Gradle Tooling API if it's too old for modern Java/Gradle
+# shellcheck source=../lib/patch-tooling-api.bash
+source "${plugin_dir}/lib/patch-tooling-api.bash"
+patch_tooling_api "$ASDF_INSTALL_PATH"
+
 # Clean up download directory
 rm -rf "$ASDF_DOWNLOAD_PATH"
 
