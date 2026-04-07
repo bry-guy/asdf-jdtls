@@ -5,6 +5,8 @@ set -euo pipefail
 repo_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 # shellcheck source=../lib/utils.bash
 source "$repo_root/lib/utils.bash"
+# shellcheck source=../lib/patch-tooling-api.bash
+source "$repo_root/lib/patch-tooling-api.bash"
 
 failures=0
 
@@ -64,6 +66,10 @@ assert_eq 1.54.0 "$(jdtls_latest_compatible_version 17)" "latest Java 17 compati
 assert_eq 1.57.0 "$(jdtls_latest_compatible_version 21)" "latest Java 21 compatible release resolves correctly"
 assert_eq 1.54.0 "$(jdtls_resolve_version latest-java17)" "latest-java17 alias resolves correctly"
 assert_eq 1.57.0 "$(jdtls_resolve_version latest-java21)" "latest-java21 alias resolves correctly"
+assert_eq "9_2_1" "$(osgi_qualifier_from_gradle_version 9.2.1)" "Gradle version is converted to an OSGi-safe qualifier fragment"
+assert_eq "8.9.1.gradle_9_2_1" "$(make_osgi_bundle_version 8.9.1 9.2.1)" "Patched Tooling API bundle version stays in Buildship range and remains OSGi-safe"
+assert_true "OSGi validator accepts safe patched bundle version" validate_osgi_bundle_version 8.9.1.gradle_9_2_1
+assert_false "OSGi validator rejects dotted qualifier" validate_osgi_bundle_version 8.9.1.gradle-9.2.1
 
 if [ "$failures" -ne 0 ]; then
   echo

@@ -18,8 +18,28 @@ GRADLE_TOOLING_API_VERSION="9.2.1"
 GRADLE_TOOLING_API_URL="https://repo.gradle.org/gradle/libs-releases/org/gradle/gradle-tooling-api/${GRADLE_TOOLING_API_VERSION}/gradle-tooling-api-${GRADLE_TOOLING_API_VERSION}.jar"
 
 # Buildship's Require-Bundle constraint is [8.9.0, 8.10.0), so we label
-# the replacement jar as 8.9.1 to satisfy it.
-OSGI_BUNDLE_VERSION="8.9.1.gradle-${GRADLE_TOOLING_API_VERSION}"
+# the replacement jar as 8.9.1 to satisfy it. OSGi qualifiers cannot
+# contain dots, so we encode the upstream Gradle version into a safe
+# qualifier like gradle_9_2_1.
+OSGI_BASE_BUNDLE_VERSION="8.9.1"
+
+osgi_qualifier_from_gradle_version() {
+  local gradle_version="$1"
+  printf '%s' "$gradle_version" | tr -c '[:alnum:]_-' '_'
+}
+
+make_osgi_bundle_version() {
+  local base_version="$1"
+  local gradle_version="$2"
+  printf '%s.%s\n' "$base_version" "gradle_$(osgi_qualifier_from_gradle_version "$gradle_version")"
+}
+
+validate_osgi_bundle_version() {
+  local version="$1"
+  [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+(\.[A-Za-z0-9_-]+)?$ ]]
+}
+
+OSGI_BUNDLE_VERSION="$(make_osgi_bundle_version "$OSGI_BASE_BUNDLE_VERSION" "$GRADLE_TOOLING_API_VERSION")"
 
 patch_tooling_api() {
   local install_path="$1"
@@ -43,7 +63,12 @@ patch_tooling_api() {
     return 0
   fi
 
-  echo "Patching Gradle Tooling API: ${old_name} → ${GRADLE_TOOLING_API_VERSION}..."
+  if ! validate_osgi_bundle_version "$OSGI_BUNDLE_VERSION"; then
+    echo "Error: computed invalid OSGi bundle version: ${OSGI_BUNDLE_VERSION}" >&2
+    return 1
+  fi
+
+  echo "Patching Gradle Tooling API: ${old_name} → ${GRADLE_TOOLING_API_VERSION} (${OSGI_BUNDLE_VERSION})..."
 
   local tmpdir
   tmpdir=$(mktemp -d)
